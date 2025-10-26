@@ -72,12 +72,12 @@ static int wuwa_sock_create(struct net* net, struct socket* sock, int protocol, 
         wuwa_warn("only root can create wuwa socket!\n");
         return -EAFNOSUPPORT;
     }
-
+/*
     if (sock->type != SOCK_RAW) {
         wuwa_warn("socket must be SOCK_RAW!\n");
         return -ENOKEY;
     }
-
+*/
     sock->state = SS_UNCONNECTED;
     struct sock* sk = sk_alloc(net, PF_INET, GFP_KERNEL, &wuwa_proto, kern);
     if (!sk) {
