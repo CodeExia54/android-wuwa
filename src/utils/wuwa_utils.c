@@ -144,7 +144,7 @@ uintptr_t vaddr_to_phy_addr(struct mm_struct* mm, uintptr_t va) {
     }
 
     if (!pte_present(*ptep)) {
-        wuwa_err("PTE not present for virtual address 0x%lx\n", va);
+    //    wuwa_err("PTE not present for virtual address 0x%lx\n", va);
         return 0;
     }
 
