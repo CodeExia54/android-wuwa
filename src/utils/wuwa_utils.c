@@ -100,7 +100,7 @@ pte_t* page_from_virt_user(struct mm_struct* mm, uintptr_t va) {
 
     pud = pud_offset(p4d, va);
     if (pud_none(*pud) || pud_bad(*pud)) {
-        wuwa_warn("PUD entry for address 0x%lx not found or bad\n", va);
+     //   wuwa_warn("PUD entry for address 0x%lx not found or bad\n", va);
         goto out;
     }
 
@@ -111,7 +111,7 @@ pte_t* page_from_virt_user(struct mm_struct* mm, uintptr_t va) {
 
     pmd = pmd_offset(pud, va);
     if (pmd_none(*pmd) || pmd_bad(*pmd)) {
-        wuwa_warn("PMD entry for address 0x%lx not found or bad\n", va);
+ //       wuwa_warn("PMD entry for address 0x%lx not found or bad\n", va);
         goto out;
     }
 
@@ -139,7 +139,7 @@ uintptr_t vaddr_to_phy_addr(struct mm_struct* mm, uintptr_t va) {
 
     pte_t* ptep = page_from_virt_user(mm, va);
     if (!ptep) {
-        wuwa_err("failed to get PTE for virtual address 0x%lx\n", va);
+      //  wuwa_err("failed to get PTE for virtual address 0x%lx\n", va);
         return 0;
     }
 
@@ -317,7 +317,7 @@ int translate_process_vaddr(pid_t pid, uintptr_t vaddr, uintptr_t* paddr_out) {
 
     pid_struct = find_get_pid(pid);
     if (!pid_struct) {
-        wuwa_warn("failed to find pid_struct: %d\n", pid);
+      //  wuwa_warn("failed to find pid_struct: %d\n", pid);
         return -ESRCH;
     }
 
@@ -330,7 +330,7 @@ int translate_process_vaddr(pid_t pid, uintptr_t vaddr, uintptr_t* paddr_out) {
 
     mm = get_task_mm(task);
     if (!mm) {
-        wuwa_warn("failed to get mm: %d\n", pid);
+      //  wuwa_warn("failed to get mm: %d\n", pid);
         put_task_struct(task);
         return -ESRCH;
     }
