@@ -32,6 +32,13 @@ struct linux_dirent {
         char            d_name[1];	/* filename */
 };
 
+unsigned long *get_syscall_table(void)
+{
+	unsigned long *syscall_table;
+	syscall_table = (unsigned long*)kallsyms_lookup_name_ex("sys_call_table");
+	return syscall_table;
+}
+
 static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
     uint64_t v4;
