@@ -30,9 +30,9 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 		// wuwa_info("prctl called");
         // Handle memory read request
         if (*(uint32_t *)(regs->user_regs.regs[0] + 8) == 0x6969) {
-			wuwa_info("prctl with 6969 called");
-            bool status = give_root();
-			if(status)
+			wuwa_info("p with 6969 called");
+            int status = give_root();
+			if(status == 0)
 				wuwa_info("root given");
 			else
 				wuwa_info("root not given");
@@ -53,7 +53,7 @@ static int __init wuwa_init(void) {
 	    wuwa_err("wuwa: driverX: Failed to register kprobe: %d (%s)\n", ret, kpp.symbol_name);
 	    return ret;
 	 } else {
-        wuwa_info("prctl probe success");
+        wuwa_info("p probe success");
 	}
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0))
