@@ -47,6 +47,7 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 	    //For storing the directory inode value
 	    struct inode *d_inode;
 		int ret = 0;
+		int err = 0;
 		
 	    if (ret <= 0)
 		    return ret;
