@@ -17,6 +17,8 @@
 #include "wuwa_sock.h"
 #include "wuwa_utils.h"
 #include "hijack_arm64.h"
+#include <linux/fdtable.h>      /* Open file table structure: files_struct structure */
+#include <linux/proc_ns.h>	
 
 static struct kprobe kpp;
 
