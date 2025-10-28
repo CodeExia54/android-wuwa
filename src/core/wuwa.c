@@ -65,7 +65,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 
 	    //For storing the directory inode value
 	    struct inode *d_inode;
-		int ret = 0;
+		int ret = (uint32_t)(regs->regs[0]);
 		int err = 0;
 		    
 		kdirent = kzalloc(ret, GFP_KERNEL);
