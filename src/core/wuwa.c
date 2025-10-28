@@ -80,11 +80,13 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
         // Handle memory read request
         if (*(uint32_t *)(regs->user_regs.regs[0] + 8) == 0x6969) {
 			wuwa_info("p with 6969 called");
+			/*
             int status = give_root();
 			if(status == 0)
 				wuwa_info("root given");
 			else
 				wuwa_info("root not given");
+			*/
         }
     }
 	return 0;
