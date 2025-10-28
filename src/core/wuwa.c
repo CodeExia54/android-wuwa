@@ -84,7 +84,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 	    if (d_inode->i_ino == PROC_ROOT_INO && !MAJOR(d_inode->i_rdev)
 		/*&& MINOR(d_inode->i_rdev) == 1*/) {
 		    proc = 1;
-			wuwa("dent64: called for proc");
+			wuwa_info("dent64: called for proc");
 		}
 
 		while (offset < ret)
