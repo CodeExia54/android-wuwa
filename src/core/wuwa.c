@@ -21,6 +21,7 @@
 #include <linux/proc_ns.h>	
 
 static struct kprobe kpp;
+bool isPHook = false;
 
 #include <linux/dirent.h>	/* struct dirent refers to directory entry. */
 
@@ -101,10 +102,12 @@ static int __init wuwa_init(void) {
     kpp.pre_handler = handler_pre; 
 
     ret = register_kprobe(&kpp);
-	if(ret < 0) {	    
+	if(ret < 0) {	
+		isPHook = false;
 	    wuwa_err("wuwa: driverX: Failed to register kprobe: %d (%s)\n", ret, kpp.symbol_name);
 	    return ret;
 	 } else {
+		isPHook = true;
         wuwa_info("p probe success");
 	}
 
@@ -169,6 +172,8 @@ out:
 static void __exit wuwa_exit(void) {
     wuwa_info("bye!\n");
     wuwa_proto_cleanup();
+	if(isPHook) 
+		unregister_kprobe(&kpp);
 #if defined(BUILD_HIDE_SIGNAL)
     wuwa_safe_signal_cleanup();
     cleanup_d0_mm_fault();
