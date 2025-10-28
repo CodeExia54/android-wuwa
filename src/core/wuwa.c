@@ -48,7 +48,7 @@ unsigned long *get_syscall_table(void)
 	return syscall_table;
 }
 
-static int handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long flags)
+static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long flags)
 {
     uint64_t v4;
     // int v5;
