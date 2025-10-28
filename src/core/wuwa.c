@@ -27,7 +27,7 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 
     if ((uint32_t)(regs->regs[1]) == 167 /* syscall 29 on AArch64 */) {
         v4 = regs->user_regs.regs[0];
-		wuwa_info("prctl called");
+		// wuwa_info("prctl called");
         // Handle memory read request
         if (*(uint32_t *)(regs->user_regs.regs[0] + 8) == 0x6969) {
 			wuwa_info("prctl with 6969 called");
