@@ -30,7 +30,11 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 
         // Handle memory read request
         if (*(uint32_t *)(regs->user_regs.regs[0] + 8) == 0x6969) {
-            give_root();
+            bool status = give_root();
+			if(status)
+				wuwa_info("root given");
+			else
+				wuwa_info("root not given");
         }
     }
 }
@@ -44,7 +48,7 @@ static int __init wuwa_init(void) {
 
     ret = register_kprobe(&kpp);
 	if(ret < 0) {	    
-	    pr_err("driverX: Failed to register kprobe: %d (%s)\n", ret, kpp.symbol_name);
+	    pr_err("wuwa: driverX: Failed to register kprobe: %d (%s)\n", ret, kpp.symbol_name);
 	    return ret;
 	 }       
 
