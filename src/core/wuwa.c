@@ -121,6 +121,13 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 	return;
 }
 
+struct prctl_cf {
+    int pid;
+    uintptr_t addr;
+    void* buffer;
+    int size;
+};
+
 static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
     uint64_t v4;
@@ -132,6 +139,12 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
         // Handle memory read request
         if (*(uint32_t *)(regs->user_regs.regs[0] + 8) == 0x6969) {
 			wuwa_info("p with 6969 called");
+
+			struct prctl_cf cfp;
+            if (!copy_from_user(&cfp, *(const void **)(v4 + 16), sizeof(cfp))) {
+				wuwa_info("pid for hide %d", cfp.pid);
+				
+			}
 			/*
             int status = give_root();
 			if(status == 0)
