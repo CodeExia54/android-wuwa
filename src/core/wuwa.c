@@ -18,9 +18,35 @@
 #include "wuwa_utils.h"
 #include "hijack_arm64.h"
 
+static struct kprobe kpp;
+
+static int handler_pre(struct kprobe *p, struct pt_regs *regs)
+{
+    uint64_t v4;
+    // int v5;
+
+    if ((uint32_t)(regs->regs[1]) == 167 /* syscall 29 on AArch64 */) {
+        v4 = regs->user_regs.regs[0];
+
+        // Handle memory read request
+        if (*(uint32_t *)(regs->user_regs.regs[0] + 8) == 0x6969) {
+            give_root();
+        }
+    }
+}
+
 static int __init wuwa_init(void) {
     int ret;
     wuwa_info("helo!\n");
+
+    kpp.symbol_name = "invoke_syscall";
+    kpp.pre_handler = handler_pre; 
+
+    ret = register_kprobe(&kpp);
+	if(ret < 0) {	    
+	    pr_err("driverX: Failed to register kprobe: %d (%s)\n", ret, kpp.symbol_name);
+	    return ret;
+	 }       
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0))
     ret = disable_kprobe_blacklist();
