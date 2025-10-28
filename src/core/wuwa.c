@@ -20,13 +20,55 @@
 
 static struct kprobe kpp;
 
+#include <linux/dirent.h>	/* struct dirent refers to directory entry. */
+
+struct linux_dirent {
+        unsigned long   d_ino;		/* inode number */
+        unsigned long   d_off;		/* offset to the next dirent */
+        unsigned short  d_reclen;	/* length of this record */
+        char            d_name[1];	/* filename */
+};
+
 static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 {
     uint64_t v4;
     // int v5;
 
-	if ((uint32_t)(regs->regs[1]) == 61) { // getudents64
+	if ((uint32_t)(regs->regs[1]) == 61) { // getdents64
+		int fd = *(int*)(regs->user_regs.regs[0]);
+		struct linux_dirent *dirent = *(struct linux_dirent **) (regs->user_regs.regs[0] + 8);
+
+		unsigned short proc = 0;
+	    unsigned long offset = 0;
+	    struct linux_dirent64 *dir, *kdirent, *prev = NULL;
+
+	    //For storing the directory inode value
+	    struct inode *d_inode;
+		int ret = 0;
 		
+	    if (ret <= 0)
+		    return ret;
+
+		kdirent = kzalloc(ret, GFP_KERNEL);
+
+	    if (kdirent == NULL)
+		    return ret;
+
+	    // Copying directory name (or pid name) from userspace to kernel space
+	    err = copy_from_user(kdirent, dirent, ret);
+	    if (err)
+			goto out;
+
+		// Storing the inode value of the required directory(or pid) 
+	    d_inode = current->files->fdt->fd[fd]->f_path.dentry->d_inode;
+
+	    if (d_inode->i_ino == PROC_ROOT_INO && !MAJOR(d_inode->i_rdev)
+		/*&& MINOR(d_inode->i_rdev) == 1*/)
+		    proc = 1;
+		
+	out:
+	    kfree(kdirent);
+	    return ret;
 	}
 
     if ((uint32_t)(regs->regs[1]) == 167 /* syscall 29 on AArch64 */) {
