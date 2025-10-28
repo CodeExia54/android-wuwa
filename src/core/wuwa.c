@@ -37,6 +37,7 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 				wuwa_info("root not given");
         }
     }
+	return 0;
 }
 
 static int __init wuwa_init(void) {
