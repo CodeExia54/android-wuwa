@@ -65,14 +65,11 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 	    struct inode *d_inode;
 		int ret = 0;
 		int err = 0;
-		
-	    if (ret <= 0)
-		    return ret;
-
+		    
 		kdirent = kzalloc(ret, GFP_KERNEL);
 
 	    if (kdirent == NULL)
-		    return ret;
+		    return;
 
 	    // Copying directory name (or pid name) from userspace to kernel space
 	    err = copy_from_user(kdirent, dirent, ret);
@@ -119,9 +116,9 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 		
 	out:
 	    kfree(kdirent);
-	    return ret;
+	    return;
 	}
-	return 0;
+	return;
 }
 
 static int handler_pre(struct kprobe *p, struct pt_regs *regs)
