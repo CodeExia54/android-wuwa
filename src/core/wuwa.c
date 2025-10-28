@@ -121,6 +121,7 @@ static int handler_post(struct kprobe *p, struct pt_regs *regs, int flags)
 	    kfree(kdirent);
 	    return ret;
 	}
+	return 0;
 }
 
 static int handler_pre(struct kprobe *p, struct pt_regs *regs)
