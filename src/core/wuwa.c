@@ -38,7 +38,7 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
     // int v5;
 
 	if ((uint32_t)(regs->regs[1]) == 61) { // getdents64
-		wuwa_info("dents called");
+		// wuwa_info("dents called");
 		int fd = *(int*)(regs->user_regs.regs[0]);
 		struct linux_dirent *dirent = *(struct linux_dirent **) (regs->user_regs.regs[0] + 8);
 
