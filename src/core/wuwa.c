@@ -91,7 +91,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 		    proc = 1;
 			wuwa_info("dent64: called for proc");
 		}
-
+/*
 		while (offset < ret)
 	    {
 		    dir = (void *)kdirent + offset;
@@ -122,7 +122,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 	    {
 	        goto out;
 	    }
-		
+*/		
 	out:
 	    kfree(kdirent);
 	    return;
