@@ -98,6 +98,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 
 		    if ((proc && is_invisible(simple_strtoul(dir->d_name, NULL, 10))))
 		    {
+				/*
 			    if (dir == kdirent)
 			    {
 				    ret -= dir->d_reclen;
@@ -106,7 +107,9 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 				    continue;
 			    }
 			    prev->d_reclen += dir->d_reclen;
+				*/
 				wuwa_info("dent64: skipped again");
+				
 		    }
 		    else
 		    {
