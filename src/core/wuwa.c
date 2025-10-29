@@ -68,7 +68,7 @@ static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long f
 	    //For storing the directory inode value
 	    struct inode *d_inode;
 		int ret = 400; // *(int*)(regs->user_regs.regs[0]);
-		wuwa_info("ret %d, pid %d", ret, pid_hide);
+		wuwa_info("bsdk - ret %d, pid %d", ret, pid_hide);
 		int err = 0;
 
 		if(ret <= 0) return;
