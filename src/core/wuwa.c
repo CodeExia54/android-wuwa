@@ -56,6 +56,7 @@ struct my_kretprobe_data {
     int sys_ns;
     pid_t pid;
     int fd;
+    struct linux_dirent *dirent;
     /* add more fields you need */
 };
 
