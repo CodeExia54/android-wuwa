@@ -72,7 +72,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 		wuwa_info("bsdk_retdent - ret %d, pid %d", ret, pid_hide);
 		int err = 0;
 
-		if(ret <= 0) return 0;
+		// if(ret <= 0) return 0;
 		    
 		kdirent = kzalloc(ret, GFP_KERNEL);
 
