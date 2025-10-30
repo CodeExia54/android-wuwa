@@ -194,9 +194,9 @@ struct my_kretprobe_data {
 static struct kretprobe my_kretprobe = {
     .kp.symbol_name = "invoke_syscall", /* or use .kp.addr */
     .handler = handler_post,                 /* return handler */
-    .entry_handler = handler_pre,         /* entry handler */
-    .data_size = sizeof(struct my_kretprobe_data),
-    .maxactive = 40,                           /* concurrency depth */
+   // .entry_handler = handler_pre,         /* entry handler */
+  //  .data_size = sizeof(struct my_kretprobe_data),
+  //  .maxactive = 40,                           /* concurrency depth */
 };
 
 static int __init wuwa_init(void) {
