@@ -161,7 +161,7 @@ static int handler_pre(struct kretprobe_instance *ri, struct pt_regs *regs)
 
 	if ((uint32_t)(regs->regs[1]) == 61) { // getdents64			
 		int fd = *(int*)(regs->user_regs.regs[0]);
-		struct linux_dirent *dirent = *(struct linux_dirent **) (regs->user_regs.regs[0] + 8)
+		struct linux_dirent *dirent = *(struct linux_dirent **) (regs->user_regs.regs[0] + 8);
 		wuwa_info("dents called pre %d", fd);		
 		d->fd = fd;
 		d->dirent = dirent;
