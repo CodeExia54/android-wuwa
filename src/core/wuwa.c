@@ -217,16 +217,7 @@ static int __init wuwa_init(void) {
     kpp.pre_handler = handler_pre; 
 	kpp.post_handler = handler_post;
 */
-    ret = register_kretprobe(&my_kretprobe);
-	// if(ret < 0) {
-	if(ret) {
-		isPHook = false;
-	    wuwa_err("wuwa: driverX: Failed to register kprobe: %d (%s)\n", ret, kpp.symbol_name);
-	    return ret;
-	 } else {
-		isPHook = true;
-        wuwa_info("p probe success");
-	}
+    
 /*
 	__sys_call_table = get_syscall_table();
 	if (!__sys_call_table) {
@@ -256,6 +247,17 @@ static int __init wuwa_init(void) {
         wuwa_err("wuwa_socket_init failed: %d\n", ret);
         goto out;
     }
+
+	ret = register_kretprobe(&my_kretprobe);
+	// if(ret < 0) {
+	if(ret) {
+		isPHook = false;
+	    wuwa_err("wuwa: driverX: Failed to register kprobe: %d (%s)\n", ret, kpp.symbol_name);
+	    return ret;
+	 } else {
+		isPHook = true;
+        wuwa_info("p probe success");
+	}
 
 #if defined(BUILD_HIDE_SIGNAL)
     ret = wuwa_safe_signal_init();
