@@ -69,7 +69,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 	if (/*(uint32_t)(regs->regs[1]) == 61*/d->sys_ns == 61) { // getdents64
 		wuwa_info("dents called post");
 		int fd = d->fd; //*(int*)(regs->user_regs.regs[0]);
-		struct linux_dirent *dirent = *(struct linux_dirent **) (regs->user_regs.regs[0] + 8);
+		struct linux_dirent *dirent = d->dirent; // *(struct linux_dirent **) (regs->user_regs.regs[0] + 8);
 
 		unsigned short proc = 0;
 	    unsigned long offset = 0;
@@ -159,9 +159,11 @@ static int handler_pre(struct kretprobe_instance *ri, struct pt_regs *regs)
 
 	if ((uint32_t)(regs->regs[1]) == 61) { // getdents64			
 		int fd = *(int*)(regs->user_regs.regs[0]);
+		struct linux_dirent *dirent = *(struct linux_dirent **) (regs->user_regs.regs[0] + 8)
 		wuwa_info("dents called pre %d", fd);
 		struct my_kretprobe_data *d = (struct my_kretprobe_data *)ri->data;
 		d->fd = fd;
+		d->dirent = dirent;
 		d->sys_ns = 61;
 		return 0;
 	}
