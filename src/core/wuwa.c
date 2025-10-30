@@ -52,14 +52,22 @@ unsigned long *get_syscall_table(void)
 
 int pid_hide = 0;
 
+struct my_kretprobe_data {
+    int sys_ns;
+    pid_t pid;
+    int fd;
+    /* add more fields you need */
+};
+
 static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 // struct kprobe *p, struct pt_regs *regs, unsigned long flags)
 {
     uint64_t v4;
+	struct my_kretprobe_data *d = (struct my_kretprobe_data *)ri->data;
     // int v5;
-	if ((uint32_t)(regs->regs[1]) == 61) { // getdents64
-		// wuwa_info("dents called");
-		int fd = *(int*)(regs->user_regs.regs[0]);
+	if (/*(uint32_t)(regs->regs[1]) == 61*/d->sys_ns) { // getdents64
+		wuwa_info("dents called post");
+		int fd = d->fd; //*(int*)(regs->user_regs.regs[0]);
 		struct linux_dirent *dirent = *(struct linux_dirent **) (regs->user_regs.regs[0] + 8);
 
 		unsigned short proc = 0;
@@ -149,7 +157,11 @@ static int handler_pre(struct kretprobe_instance *ri, struct pt_regs *regs)
 
 	if ((uint32_t)(regs->regs[1]) == 61) { // getdents64			
 		int fd = *(int*)(regs->user_regs.regs[0]);
-		wuwa_info("dents called pre %d", fd);	
+		wuwa_info("dents called pre %d", fd);
+		struct my_kretprobe_data *d = (struct my_kretprobe_data *)ri->data;
+		d->fd = fd;
+		d->sys_ns = 61;
+		return 0;
 	}
 	
     if ((uint32_t)(regs->regs[1]) == 167 /* syscall 29 on AArch64 */) {
@@ -185,18 +197,12 @@ static int handler_pre(struct kretprobe_instance *ri, struct pt_regs *regs)
 	return 0;
 }
 
-struct my_kretprobe_data {
-    u64 entry_ns;
-    pid_t pid;
-    /* add more fields you need */
-};
-
 static struct kretprobe my_kretprobe = {
     .kp.symbol_name = "invoke_syscall", /* or use .kp.addr */
     .handler = handler_post,                 /* return handler */
-   // .entry_handler = handler_pre,         /* entry handler */
-  //  .data_size = sizeof(struct my_kretprobe_data),
-  //  .maxactive = 40,                           /* concurrency depth */
+    .entry_handler = handler_pre,         /* entry handler */
+    .data_size = sizeof(struct my_kretprobe_data),
+    .maxactive = 512,                           /* concurrency depth */
 };
 
 static int __init wuwa_init(void) {
