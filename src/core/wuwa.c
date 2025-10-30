@@ -52,7 +52,8 @@ unsigned long *get_syscall_table(void)
 
 int pid_hide = 0;
 
-static void handler_post(struct kprobe *p, struct pt_regs *regs, unsigned long flags)
+static void handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
+// struct kprobe *p, struct pt_regs *regs, unsigned long flags)
 {
     uint64_t v4;
     // int v5;
@@ -140,7 +141,8 @@ struct prctl_cf {
     int size;
 };
 
-static int handler_pre(struct kprobe *p, struct pt_regs *regs)
+static int handler_pre(struct kretprobe_instance *ri, struct pt_regs *regs)
+// struct kprobe *p, struct pt_regs *regs)
 {
     uint64_t v4;
     // int v5;
@@ -183,16 +185,31 @@ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
 	return 0;
 }
 
+struct my_kretprobe_data {
+    u64 entry_ns;
+    pid_t pid;
+    /* add more fields you need */
+};
+
+static struct kretprobe my_kretprobe = {
+    .kp.symbol_name = "invoke_syscall", /* or use .kp.addr */
+    .handler = handler_post,                 /* return handler */
+    .entry_handler = handler_pre,         /* entry handler */
+    .data_size = sizeof(struct my_kretprobe_data),
+    .maxactive = 40,                           /* concurrency depth */
+};
+
 static int __init wuwa_init(void) {
     int ret;
     wuwa_info("helo!\n");
-
+/*
     kpp.symbol_name = "invoke_syscall";
     kpp.pre_handler = handler_pre; 
 	kpp.post_handler = handler_post;
-
-    ret = register_kprobe(&kpp);
-	if(ret < 0) {	
+*/
+    ret = register_kretprobe(&my_kretprobe);
+	// if(ret < 0) {
+	if(ret) {
 		isPHook = false;
 	    wuwa_err("wuwa: driverX: Failed to register kprobe: %d (%s)\n", ret, kpp.symbol_name);
 	    return ret;
