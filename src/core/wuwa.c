@@ -100,7 +100,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 		    proc = 1;
 			wuwa_info("dent64: called for proc");
 		}
-/*
+
 		if(proc) {
 		while (offset < ret)
 	    {
