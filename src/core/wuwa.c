@@ -68,7 +68,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 
 	    //For storing the directory inode value
 	    struct inode *d_inode;
-		int ret = *(int*)(regs->regs[0]);
+		int ret = (int)regs_return_value(regs); // *(int*)(regs->regs[0]);
 		wuwa_info("bsdkkk - ret %d, pid %d", ret, pid_hide);
 		int err = 0;
 
