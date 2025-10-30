@@ -77,7 +77,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 	    //For storing the directory inode value
 	    struct inode *d_inode;
 		int ret = (int)regs_return_value(regs); // *(int*)(regs->regs[0]);
-		wuwa_info("bsdk_retdent - ret %d, pid %d", ret, pid_hide);
+		wuwa_info("bsdk_retdent - ret %d, pid %d fd %d", ret, pid_hide, fd);
 		int err = 0;
 
 		if(ret <= 0) return 0;
@@ -86,7 +86,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 
 	    if (kdirent == NULL)
 		    return 0;
-
+/*
 	    // Copying directory name (or pid name) from userspace to kernel space
 	    err = copy_from_user(kdirent, dirent, ret);
 	    if (err)
@@ -100,7 +100,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 		    proc = 1;
 			wuwa_info("dent64: called for proc");
 		}
-/*
+
 		if(proc) {
 		while (offset < ret)
 	    {
