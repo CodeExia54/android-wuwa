@@ -87,7 +87,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 
 	    if (kdirent == NULL)
 		    return 0;
-/*
+
 	    // Copying directory name (or pid name) from userspace to kernel space
 	    err = copy_from_user(kdirent, dirent, ret);
 	    if (err)
@@ -99,9 +99,9 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 	    if (d_inode->i_ino == PROC_ROOT_INO && !MAJOR(d_inode->i_rdev)
 		) {
 		    proc = 1;
-			wuwa_info("dent64: called for proc");
+			wuwa_info("dent64: called for proc %d", ret);
 		}
-
+/*
 		if(proc) {
 		while (offset < ret)
 	    {
@@ -135,11 +135,11 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 	        goto out;
 	    }
 		}
-	
+	*/
 	out:
 	    kfree(kdirent);
 	    return 0;
-*/
+
 	}
 	return 0;
 }
