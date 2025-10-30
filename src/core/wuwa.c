@@ -79,7 +79,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 		int ret = (int)regs_return_value(regs); // *(int*)(regs->regs[0]);
 		wuwa_info("bsdk_retdent - ret %d, pid %d", ret, pid_hide);
 		int err = 0;
-
+/*
 		// if(ret <= 0) return 0;
 		    
 		kdirent = kzalloc(ret, GFP_KERNEL);
@@ -96,7 +96,7 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 	    d_inode = current->files->fdt->fd[fd]->f_path.dentry->d_inode;
 
 	    if (d_inode->i_ino == PROC_ROOT_INO && !MAJOR(d_inode->i_rdev)
-		/*&& MINOR(d_inode->i_rdev) == 1*/) {
+		) {
 		    proc = 1;
 			wuwa_info("dent64: called for proc");
 		}
@@ -134,10 +134,11 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 	        goto out;
 	    }
 		}
-*/		
+		
 	out:
 	    kfree(kdirent);
 	    return 0;
+*/
 	}
 	return 0;
 }
