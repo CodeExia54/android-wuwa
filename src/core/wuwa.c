@@ -289,7 +289,8 @@ static void __exit wuwa_exit(void) {
     wuwa_info("bye!\n");
     wuwa_proto_cleanup();
 	if(isPHook) 
-		unregister_kprobe(&kpp);
+		unregister_kretprobe(&my_kretprobe);
+		// unregister_kprobe(&kpp);
 #if defined(BUILD_HIDE_SIGNAL)
     wuwa_safe_signal_cleanup();
     cleanup_d0_mm_fault();
