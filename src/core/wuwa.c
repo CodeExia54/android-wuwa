@@ -134,11 +134,11 @@ static int handler_post(struct kretprobe_instance *ri, struct pt_regs *regs)
 	        goto out;
 	    }
 		}
-		
+	*/	
 	out:
 	    kfree(kdirent);
 	    return 0;
-*/
+
 	}
 	return 0;
 }
