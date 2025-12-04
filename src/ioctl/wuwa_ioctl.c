@@ -18,11 +18,49 @@
 #include "wuwa_proc.h"
 #include "wuwa_safe_signal.h"
 
+/* ===== FPU Protection Functions ===== */
+#include <linux/preempt.h>
+
+// ARM64 FPSR clearing for FPU protection
+static inline void wuwa_fpu_protect_begin(void)
+{
+    preempt_disable();
+    local_irq_disable();
+    asm volatile("msr fpsr, xzr");  // Clear FPU status register
+}
+
+static inline void wuwa_fpu_protect_end(void)
+{
+    asm volatile("msr fpsr, xzr");  // Clear again
+    local_irq_enable();
+    preempt_enable();
+}
+
+// Safe copy with FPU protection
+static inline int wuwa_safe_copy_to_user(void __user *to, const void *from, size_t n)
+{
+    int ret;
+    wuwa_fpu_protect_begin();
+    ret = copy_to_user(to, from, n);
+    wuwa_fpu_protect_end();
+    return ret;
+}
+
+static inline int wuwa_safe_copy_from_user(void *to, const void __user *from, size_t n)
+{
+    int ret;
+    wuwa_fpu_protect_begin();
+    ret = copy_from_user(to, from, n);
+    wuwa_fpu_protect_end();
+    return ret;
+}
+/* ===== END FPU Protection ===== */
+
 int do_vaddr_translate(struct socket* sock, void* arg) {
     struct wuwa_addr_translate_cmd cmd;
     int ret;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -31,7 +69,7 @@ int do_vaddr_translate(struct socket* sock, void* arg) {
         return ret;
     }
 
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
     return 0;
@@ -49,7 +87,7 @@ int do_debug_info(struct socket* sock, void* arg) {
     debug_info_cmd.mm_right = ((uint64_t)(ASID(current->mm)) << 48 | virt_to_phys(current->mm->pgd) | (uint64_t)1) ==
         debug_info_cmd.ttbr0_el1;
 
-    if (copy_to_user(arg, &debug_info_cmd, sizeof(debug_info_cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &debug_info_cmd, sizeof(debug_info_cmd))) {
         return -EFAULT;
     }
 
@@ -58,7 +96,7 @@ int do_debug_info(struct socket* sock, void* arg) {
 
 int do_at_s1e0r(struct socket* sock, void* arg) {
     struct wuwa_at_s1e0r_cmd cmd;
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -105,7 +143,7 @@ int do_at_s1e0r(struct socket* sock, void* arg) {
         return -EFAULT;
     }
 
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
     return 0;
@@ -113,7 +151,7 @@ int do_at_s1e0r(struct socket* sock, void* arg) {
 
 int do_get_page_info(struct socket* sock, void* arg) {
     struct wuwa_page_info_cmd cmd;
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -151,7 +189,7 @@ int do_get_page_info(struct socket* sock, void* arg) {
     cmd.page._mapcount = page_struct->_mapcount;
     cmd.page._refcount = page_struct->_refcount;
 
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -160,10 +198,9 @@ int do_get_page_info(struct socket* sock, void* arg) {
 
 int do_pte_mapping(struct socket* sock, void* arg) {
 #if defined(BUILD_PTE_MAPPING)
-    // 这里需要注意 android kenel 6.6.66找不到 pte_mkwrite
     struct wuwa_sock* ws = (struct wuwa_sock*)sock->sk;
     struct wuwa_pte_mapping_cmd cmd;
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -337,7 +374,7 @@ int do_page_table_walk(struct socket* sock, void* arg) {
     struct wuwa_page_table_walk_cmd cmd;
     struct page_walk_stats stats;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -365,7 +402,7 @@ int do_page_table_walk(struct socket* sock, void* arg) {
     put_task_struct(task);
 
     // Copy result back to userspace
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -375,37 +412,13 @@ int do_page_table_walk(struct socket* sock, void* arg) {
     return 0;
 }
 
-// static void (*wake_up_new_task)(struct task_struct *tsk) = NULL;
-// if (!wake_up_new_task) {
-//     wake_up_new_task = (void (*)(struct task_struct *))kallsyms_lookup_name_ex("wake_up_new_task");
-// }
-//
-// wake_up_new_task(p);
-// static __latent_entropy struct task_struct *(*copy_process)(
-//             struct pid *pid,
-//             int trace,
-//             int node,
-//             struct kernel_clone_args *args) = NULL;
-// if (copy_process == NULL) {
-//     copy_process = (typeof(copy_process))kallsyms_lookup_name_ex("copy_process");
-// }
-//
-// if (!copy_process) {
-//     ovo_warn("copy_process symbol not found\n");
-//     return -ENOENT;
-// }
-// __latent_entropy struct task_struct *copy_process(
-//                     struct pid *pid,
-//                     int trace,
-//                     int node,
-//                     struct kernel_clone_args *args)
 int do_copy_process(struct socket* sock, void* arg) {
     int ret = 0;
     struct wuwa_copy_process_cmd cmd;
     struct pid* pid;
-    struct task_struct* task /*, *p*/;
+    struct task_struct* task;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -413,7 +426,6 @@ int do_copy_process(struct socket* sock, void* arg) {
         wuwa_err("invalid function pointer or child stack\n");
         return -EINVAL;
     }
-
 
     pid = find_get_pid(cmd.pid);
     if (!pid) {
@@ -429,8 +441,6 @@ int do_copy_process(struct socket* sock, void* arg) {
     }
 
     ret = -1;
-    // cproc源码无了，这里取消
-    // ret = create_remote_thread(task, &p, cmd.child_tid, NULL, cmd.flags);
     put_task_struct(task);
     if (ret) {
         wuwa_err("failed to create remote thread: %d\n", ret);
@@ -456,7 +466,7 @@ int do_read_physical_memory(struct socket* sock, void __user* arg) {
     void* mapped;
     int ret;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -465,7 +475,7 @@ int do_read_physical_memory(struct socket* sock, void __user* arg) {
         return ret;
     }
 
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -479,7 +489,8 @@ int do_read_physical_memory(struct socket* sock, void __user* arg) {
         return -ENOMEM;
     }
 
-    if (copy_to_user((void*)cmd.dst_va, mapped, cmd.size)) {
+    // Use safe copy with FPU protection
+    if (wuwa_safe_copy_to_user((void*)cmd.dst_va, mapped, cmd.size)) {
         return -EACCES;
     }
 
@@ -488,7 +499,7 @@ int do_read_physical_memory(struct socket* sock, void __user* arg) {
 
 int do_get_module_base(struct socket* sock, void __user* arg) {
     struct wuwa_get_module_base_cmd cmd;
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -498,7 +509,7 @@ int do_get_module_base(struct socket* sock, void __user* arg) {
     }
 
     cmd.base = base;
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -507,7 +518,7 @@ int do_get_module_base(struct socket* sock, void __user* arg) {
 
 int do_find_process(struct socket* sock, void* arg) {
     struct wuwa_find_proc_cmd cmd;
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -516,7 +527,7 @@ int do_find_process(struct socket* sock, void* arg) {
         return -ENAVAIL;
     }
 
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -529,7 +540,7 @@ int do_write_physical_memory(struct socket* sock, void __user* arg) {
     void* mapped;
     int ret;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -538,7 +549,7 @@ int do_write_physical_memory(struct socket* sock, void __user* arg) {
         return ret;
     }
 
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -552,7 +563,8 @@ int do_write_physical_memory(struct socket* sock, void __user* arg) {
         return -ENOMEM;
     }
 
-    if (copy_from_user(mapped, (void*)cmd.src_va, cmd.size)) {
+    // Use safe copy with FPU protection
+    if (wuwa_safe_copy_from_user(mapped, (void*)cmd.src_va, cmd.size)) {
         return -EACCES;
     }
 
@@ -561,13 +573,13 @@ int do_write_physical_memory(struct socket* sock, void __user* arg) {
 
 int do_is_process_alive(struct socket* sock, void* arg) {
     struct wuwa_is_proc_alive_cmd cmd;
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
     cmd.alive = is_pid_alive(cmd.pid);
 
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -577,7 +589,7 @@ int do_is_process_alive(struct socket* sock, void* arg) {
 int do_hide_process(struct socket* sock, void* arg) {
     struct task_struct* task;
     struct wuwa_hide_proc_cmd cmd;
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -592,13 +604,13 @@ int do_hide_process(struct socket* sock, void* arg) {
 
 int do_give_root(struct socket* sock, void* arg) {
     struct wuwa_give_root_cmd cmd;
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
     cmd.result = give_root();
 
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -612,7 +624,7 @@ int do_read_physical_memory_ioremap(struct socket* sock, void* arg) {
     void* mapped;
     int ret;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -638,7 +650,7 @@ int do_read_physical_memory_ioremap(struct socket* sock, void* arg) {
     }
 
     // Return physical address to userspace
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -654,7 +666,8 @@ int do_read_physical_memory_ioremap(struct socket* sock, void* arg) {
         return -ENOMEM;
     }
 
-    ret = copy_to_user((void*)cmd.dst_va, mapped, cmd.size);
+    // Use safe copy with FPU protection
+    ret = wuwa_safe_copy_to_user((void*)cmd.dst_va, mapped, cmd.size);
     iounmap(mapped);
 
     return ret ? -EACCES : 0;
@@ -667,7 +680,7 @@ int do_write_physical_memory_ioremap(struct socket* sock, void* arg) {
     void* mapped;
     int ret;
 
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -693,7 +706,7 @@ int do_write_physical_memory_ioremap(struct socket* sock, void* arg) {
     }
 
     // Return physical address to userspace
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -709,7 +722,8 @@ int do_write_physical_memory_ioremap(struct socket* sock, void* arg) {
         return -ENOMEM;
     }
 
-    ret = copy_from_user(mapped, (void*)cmd.dst_va, cmd.size);
+    // Use safe copy with FPU protection
+    ret = wuwa_safe_copy_from_user(mapped, (void*)cmd.dst_va, cmd.size);
     iounmap(mapped);
 
     return ret ? -EACCES : 0;
@@ -723,7 +737,7 @@ int do_list_processes(struct socket* sock, void __user* arg) {
     int ret = 0;
 
     // Copy command from userspace
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -758,14 +772,14 @@ int do_list_processes(struct socket* sock, void __user* arg) {
     rcu_read_unlock();
 
     // Copy bitmap to userspace
-    if (copy_to_user(cmd.bitmap, kernel_bitmap, cmd.bitmap_size)) {
+    if (wuwa_safe_copy_to_user(cmd.bitmap, kernel_bitmap, cmd.bitmap_size)) {
         ret = -EFAULT;
         goto out_free;
     }
 
     // Update process count and copy back to userspace
     cmd.process_count = process_count;
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         ret = -EFAULT;
         goto out_free;
     }
@@ -785,7 +799,7 @@ int do_get_process_info(struct socket* sock, void __user* arg) {
     int ret = 0;
 
     // Copy command from userspace
-    if (copy_from_user(&cmd, arg, sizeof(cmd))) {
+    if (wuwa_safe_copy_from_user(&cmd, arg, sizeof(cmd))) {
         return -EFAULT;
     }
 
@@ -869,7 +883,7 @@ int do_get_process_info(struct socket* sock, void __user* arg) {
     put_task_struct(task);
 
     // Copy result back to userspace
-    if (copy_to_user(arg, &cmd, sizeof(cmd))) {
+    if (wuwa_safe_copy_to_user(arg, &cmd, sizeof(cmd))) {
         return -EFAULT;
     }
 
