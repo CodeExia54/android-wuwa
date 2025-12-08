@@ -38,7 +38,7 @@ ccflags-y += -DHIDE_SELF_MODULE
 # 编译时启用 HIDE_SIGNAL 功能
 #ccflags-y += -DBUILD_HIDE_SIGNAL
 #ccflags-y += -DPTE_WALK
-#ccflags-y += -DBUILD_NO_CFI
+ccflags-y += -DBUILD_NO_CFI
 # LOG CONTROL - Add this line to ENABLE logs, comment to DISABLE logs
 #ccflags-y += -DENABLE_WUWA_LOGS
 
