@@ -1,5 +1,7 @@
 #include "wuwa_proc_dmabuf.h"
 
+#ifndef WUWA_DISABLE_DMABUF
+
 #include <linux/dma-buf.h>
 #include <linux/kernel.h>
 #include <linux/mm.h>
@@ -268,3 +270,5 @@ int do_create_proc_dma_buf(struct socket* sock, void* arg) {
 
     return 0;
 }
+
+#endif /* WUWA_DISABLE_DMABUF */

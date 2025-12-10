@@ -3,6 +3,7 @@
 
 #include <linux/socket.h>
 
+#ifndef WUWA_DISABLE_DMABUF
 /**
  * do_create_proc_dma_buf - Create a DMA buffer from a process virtual address
  * @sock: Socket for session management
@@ -20,5 +21,6 @@
  * Return: 0 on success, negative error code on failure
  */
 int do_create_proc_dma_buf(struct socket* sock, void* arg);
+#endif /* WUWA_DISABLE_DMABUF */
 
 #endif /* WUWA_PROC_DMABUF_H */
