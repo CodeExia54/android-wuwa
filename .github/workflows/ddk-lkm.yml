@@ -51,8 +51,13 @@ jobs:
         llvm-strip -d "/github/workspace/out/$OUTPUT_NAME"
         echo "Size after stripping: $(du -h "/github/workspace/out/$OUTPUT_NAME" | cut -f1)"
 
-    - name: Upload ${{ inputs.module_name }}.ko artifact
+    - name: Get current timestamp
+      id: timestamp
+      run: echo "timestamp=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+    - name: Upload ${{ inputs.module_name }}.ko artifact with timestamp
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.module_name }}-${{ inputs.kmi }}.ko
+        name: ${{ inputs.module_name }}-${{ inputs.kmi }}-${{ steps.timestamp.outputs.timestamp }}.ko
         path: /github/workspace/out/${{ inputs.module_name }}-${{ inputs.kmi }}.ko
+        
