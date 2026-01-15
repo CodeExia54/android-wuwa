@@ -42,7 +42,7 @@ ccflags-y += -DBUILD_NO_CFI
 # 默认禁用 DMA buffer 功能，如需启用请注释下面这行
 ccflags-y += -DWUWA_DISABLE_DMABUF
 # LOG CONTROL - Add this line to ENABLE logs, comment to DISABLE logs
-#ccflags-y += -DENABLE_WUWA_LOGS
+ccflags-y += -DENABLE_WUWA_LOGS
 
 all:
 	make -C $(KDIR) M=$(MDIR) modules
